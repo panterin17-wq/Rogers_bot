@@ -38,7 +38,7 @@ async def webhook(request: Request):
         )
 
         comet_data = comet_response.json()
-         print(comet_data)
+
         # RESPUESTA DE COMET
         reply = comet_data.get("response", "Sin respuesta de Comet")
 
