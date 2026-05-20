@@ -9,12 +9,12 @@ load_dotenv()
 # INICIAR FASTAPI
 app = FastAPI()
 
-# VARIABLES DE ENTORNO
+# VARIABLES
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 COMET_API_KEY = os.getenv("COMET_API_KEY")
 COMET_URL = os.getenv("COMET_URL")
 
-# URL TELEGRAM
+# API TELEGRAM
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
 # RUTA PRINCIPAL
@@ -26,7 +26,7 @@ def home():
 @app.post("/webhook")
 async def webhook(request: Request):
 
-    # RECIBE DATOS DE TELEGRAM
+    # RECIBE DATOS TELEGRAM
     data = await request.json()
 
     print("MENSAJE RECIBIDO:")
@@ -34,13 +34,13 @@ async def webhook(request: Request):
 
     try:
 
-        # MENSAJE USUARIO
+        # MENSAJE
         message = data["message"]["text"]
 
         # CHAT ID
         chat_id = data["message"]["chat"]["id"]
 
-        print("MENSAJE:")
+        print("MENSAJE USUARIO:")
         print(message)
 
         # ENVÍA MENSAJE A COMET
@@ -51,19 +51,28 @@ async def webhook(request: Request):
                 "Content-Type": "application/json"
             },
             json={
-                "message": message
+                "model": "gpt-4o-mini",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": message
+                    }
+                ]
             }
         )
 
-        # RESPUESTA DE COMET
+        # RESPUESTA COMET
         print("STATUS COMET:")
         print(comet_response.status_code)
 
         print("RESPUESTA COMET:")
         print(comet_response.text)
 
-        # RESPUESTA SIMPLE
-        reply = comet_response.text
+        # CONVIERTE RESPUESTA JSON
+        comet_data = comet_response.json()
+
+        # EXTRAE TEXTO
+        reply = comet_data["choices"][0]["message"]["content"]
 
         # ENVÍA RESPUESTA A TELEGRAM
         requests.post(
