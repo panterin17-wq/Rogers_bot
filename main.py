@@ -3,27 +3,45 @@ import requests
 import os
 from dotenv import load_dotenv
 
+# CARGAR VARIABLES
 load_dotenv()
 
+# INICIAR FASTAPI
 app = FastAPI()
 
+# VARIABLES DE ENTORNO
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 COMET_API_KEY = os.getenv("COMET_API_KEY")
 COMET_URL = os.getenv("COMET_URL")
 
+# URL TELEGRAM
 TELEGRAM_API = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}"
 
+# RUTA PRINCIPAL
 @app.get("/")
 def home():
-    return {"status": "Bot funcionando"}
+    return {"status": "Bot funcionando correctamente"}
 
+# WEBHOOK TELEGRAM
 @app.post("/webhook")
 async def webhook(request: Request):
+
+    # RECIBE DATOS DE TELEGRAM
     data = await request.json()
 
+    print("MENSAJE RECIBIDO:")
+    print(data)
+
     try:
+
+        # MENSAJE USUARIO
         message = data["message"]["text"]
+
+        # CHAT ID
         chat_id = data["message"]["chat"]["id"]
+
+        print("MENSAJE:")
+        print(message)
 
         # ENVÍA MENSAJE A COMET
         comet_response = requests.post(
@@ -37,10 +55,15 @@ async def webhook(request: Request):
             }
         )
 
-        comet_data = comet_response.json()
-
         # RESPUESTA DE COMET
-        reply = comet_data.get("response", "Sin respuesta de Comet")
+        print("STATUS COMET:")
+        print(comet_response.status_code)
+
+        print("RESPUESTA COMET:")
+        print(comet_response.text)
+
+        # RESPUESTA SIMPLE
+        reply = comet_response.text
 
         # ENVÍA RESPUESTA A TELEGRAM
         requests.post(
@@ -54,4 +77,8 @@ async def webhook(request: Request):
         return {"ok": True}
 
     except Exception as e:
+
+        print("ERROR:")
+        print(str(e))
+
         return {"error": str(e)}
